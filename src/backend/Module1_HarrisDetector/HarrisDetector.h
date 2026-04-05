@@ -20,8 +20,7 @@ private:
     // Step 1-3: Compute raw Harris response map R = det(M) - k*trace(M)^2
     static void computeResponse(const cv::Mat& gray,
                                  cv::Mat& dst,
-                                 double k,
-                                 int apertureSize);
+                                 double k);
 
     // Step 4a: Threshold the normalised response map
     static cv::Mat applyThreshold(const cv::Mat& responseNorm, int thresh);

@@ -354,38 +354,28 @@ void MainWindow::updateLayoutForTask(int taskIndex) {
     // Panel titles per task
     switch (taskIndex) {
     case 1:
-        m_panelA->findChild<QLabel*>("panelTitle") &&
-            m_panelA->findChild<QLabel*>("panelTitle")->setText("Source Image");
-        m_panelOut->findChild<QLabel*>("panelTitle") &&
-            m_panelOut->findChild<QLabel*>("panelTitle")->setText("Harris Response");
+        if (auto* lbl = m_panelA->findChild<QLabel*>("panelTitle")) lbl->setText("Source Image");
+        if (auto* lbl = m_panelOut->findChild<QLabel*>("panelTitle")) lbl->setText("Harris Response");
         m_infoSidebar->show();
         break;
     case 2:
-        m_panelOut->findChild<QLabel*>("panelTitle") &&
-            m_panelOut->findChild<QLabel*>("panelTitle")->setText("Lambda Response");
+        if (auto* lbl = m_panelOut->findChild<QLabel*>("panelTitle")) lbl->setText("Lambda Response");
         m_infoSidebar->show();
         break;
     case 3:
-        m_panelOut->findChild<QLabel*>("panelTitle") &&
-            m_panelOut->findChild<QLabel*>("panelTitle")->setText("SIFT Keypoints");
+        if (auto* lbl = m_panelOut->findChild<QLabel*>("panelTitle")) lbl->setText("SIFT Keypoints");
         m_infoSidebar->show();
         break;
     case 4:
-        m_panelA->findChild<QLabel*>("panelTitle") &&
-            m_panelA->findChild<QLabel*>("panelTitle")->setText("Image A");
-        m_panelB->findChild<QLabel*>("panelTitle") &&
-            m_panelB->findChild<QLabel*>("panelTitle")->setText("Image B");
-        m_panelOut->findChild<QLabel*>("panelTitle") &&
-            m_panelOut->findChild<QLabel*>("panelTitle")->setText("SSD Matches");
+        if (auto* lbl = m_panelA->findChild<QLabel*>("panelTitle")) lbl->setText("Image A");
+        if (auto* lbl = m_panelB->findChild<QLabel*>("panelTitle")) lbl->setText("Image B");
+        if (auto* lbl = m_panelOut->findChild<QLabel*>("panelTitle")) lbl->setText("SSD Matches");
         m_infoSidebar->show();
         break;
     case 5:
-        m_panelA->findChild<QLabel*>("panelTitle") &&
-            m_panelA->findChild<QLabel*>("panelTitle")->setText("Image A");
-        m_panelB->findChild<QLabel*>("panelTitle") &&
-            m_panelB->findChild<QLabel*>("panelTitle")->setText("Image B");
-        m_panelOut->findChild<QLabel*>("panelTitle") &&
-            m_panelOut->findChild<QLabel*>("panelTitle")->setText("NCC Matches");
+        if (auto* lbl = m_panelA->findChild<QLabel*>("panelTitle")) lbl->setText("Image A");
+        if (auto* lbl = m_panelB->findChild<QLabel*>("panelTitle")) lbl->setText("Image B");
+        if (auto* lbl = m_panelOut->findChild<QLabel*>("panelTitle")) lbl->setText("NCC Matches");
         m_infoSidebar->show();
         break;
     default: break;

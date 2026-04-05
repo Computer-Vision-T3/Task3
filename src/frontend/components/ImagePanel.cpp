@@ -4,7 +4,6 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QPainter>
-#include <QRenderRule>
 #include <QUrl>
 #include <cmath>
 
