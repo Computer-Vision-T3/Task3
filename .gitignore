@@ -1,0 +1,37 @@
+# --- Build Directories ---
+build/
+bin/
+out/
+CMakeCache.txt
+CMakeFiles/
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+*_autogen/
+
+# --- IDE & OS Files ---
+.vscode/
+.idea/
+*.user
+.DS_Store
+Thumbs.db
+
+# --- Compiled Object Files ---
+*.o
+*.obj
+*.so
+*.dylib
+*.dll
+*.a
+*.lib
+*.exe
+*.out
+*.app
+
+# --- Testing / Images ---
+test/
+*.png
+*.jpg
+*.jpeg
+*.bmp
