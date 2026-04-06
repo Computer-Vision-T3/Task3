@@ -45,6 +45,7 @@ void ParameterBox::updateForTask(int taskIndex) {
         addDoubleSpinBox("siftContrast","Contrast Thr.", 0.01, 0.5, 0.04,0.005, 0, 2);
         addDoubleSpinBox("siftEdge",    "Edge Thresh",  1.0,  50.0, 10.0, 1.0, 0, 3);
         addDoubleSpinBox("siftSigma",   "Sigma",        0.5,  5.0,  1.6,  0.1, 0, 4);
+        addCheckBox     ("siftColor",   "Color mode",   false,                  0, 5); // <--- ADD THIS LINE
         break;
 
     case 4: // ── SSD Feature Matching ────────────────────────────────────────

@@ -146,12 +146,14 @@ void AppController::runSIFT() {
     double contrast = pBox->dblValue("siftContrast", 0.04);
     double edge     = pBox->dblValue("siftEdge",     10.0);
     double sigma    = pBox->dblValue("siftSigma",    1.6);
+    bool   color    = pBox->boolValue("siftColor",   false); // <--- Read the UI checkbox
 
     cv::Mat src = m_state.getImageA();
     double timingMs = 0.0;
 
+    // Call SIFT with the newly added color boolean
     auto [result, keypoints, descriptors] = SIFTDescriptor::describe(
-        src, nFeat, nOctave, contrast, edge, sigma, timingMs);
+        src, nFeat, nOctave, contrast, edge, sigma, color, timingMs);
 
     m_state.setOutput(result);
     m_window->getPanelOut()->displayImage(result);
@@ -161,7 +163,9 @@ void AppController::runSIFT() {
 
     QString extra = QString("Descriptor size: %1 × %2")
         .arg(descriptors.rows).arg(descriptors.cols);
-    showDetectionReport("SIFT", (int)keypoints.size(), timingMs, false, extra);
+        
+    // Pass the 'color' boolean instead of 'false' so the HTML sidebar updates properly
+    showDetectionReport("SIFT", (int)keypoints.size(), timingMs, color, extra);
     m_window->setStatusMessage(
         QString("SIFT: %1 kp in %2 ms ✓").arg(keypoints.size()).arg(timingMs, 0, 'f', 1),
         true);
