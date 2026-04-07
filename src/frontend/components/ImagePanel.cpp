@@ -172,8 +172,9 @@ void ImagePanel::setKeyPointCount(int n) {
 
 // ── Slots ─────────────────────────────────────────────────────────────────────
 void ImagePanel::handleLoad() {
+    const QString defaultDir = "/mnt/c/Users/LENOVO/CV/Task3/assest";
     QString path = QFileDialog::getOpenFileName(
-        this, "Open Image", "",
+        this, "Open Image", defaultDir,
         "Images (*.png *.jpg *.jpeg *.bmp *.tif *.tiff *.webp);;All Files (*)"
     );
     if (!path.isEmpty()) loadFromPath(path);
