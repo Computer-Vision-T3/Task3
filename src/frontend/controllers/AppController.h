@@ -41,4 +41,4 @@ private:
     int               m_currentTask = 1;
 };
 
-#endif // APPCONTROLLER_H
+#endif // APPCONTROLLER_H 
