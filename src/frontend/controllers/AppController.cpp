@@ -3,103 +3,45 @@
 #include "../components/TopTaskBar.h"
 #include "../components/ImagePanel.h"
 #include "../components/ParameterBox.h"
-
 #include <QFileDialog>
-#include <QMessageBox>
-#include <QSpinBox>
-#include <QDoubleSpinBox>
-#include <QCheckBox>
-#include <QComboBox>
 
-// ── Backend includes ─────────────────────────────────────────────────────────
-// Students implement these; we call through them here.
-// Stub signatures are provided in backend/ so this compiles before they are written.
+// Backend Headers
 #include "../../backend/Module1_HarrisDetector/HarrisDetector.h"
 #include "../../backend/Module2_LambdaDetector/LambdaDetector.h"
 #include "../../backend/Module3_SIFTDescriptor/SIFTDescriptor.h"
 #include "../../backend/Module4_SSDMatching/SSDMatcher.h"
 #include "../../backend/Module5_NCCMatching/NCCMatcher.h"
 
-// ── Constructor ──────────────────────────────────────────────────────────────
-AppController::AppController(MainWindow *window, QObject *parent)
-    : QObject(parent), m_window(window)
-{
+AppController::AppController(MainWindow *window, QObject *parent) : QObject(parent), m_window(window) {
     auto *bar = m_window->getTopTaskBar();
-
     connect(bar, &TopTaskBar::taskChanged, this, &AppController::handleTaskChange);
     connect(bar, &TopTaskBar::applyRequested, this, &AppController::handleApply);
     connect(bar, &TopTaskBar::clearRequested, this, &AppController::handleClear);
     connect(bar, &TopTaskBar::saveRequested, this, &AppController::handleSave);
 
-    // Keep state manager in sync with panel images
-    connect(m_window->getPanelA(), &ImagePanel::imageLoaded,
-            this, [this](const cv::Mat &img)
-            { m_state.setImageA(img); });
-    connect(m_window->getPanelB(), &ImagePanel::imageLoaded,
-            this, [this](const cv::Mat &img)
-            { m_state.setImageB(img); });
+    connect(m_window->getPanelA(), &ImagePanel::imageLoaded, this, [this](const cv::Mat &img) { m_state.setImageA(img); });
+    connect(m_window->getPanelB(), &ImagePanel::imageLoaded, this, [this](const cv::Mat &img) { m_state.setImageB(img); });
 }
 
-// ── Task change ───────────────────────────────────────────────────────────────
-void AppController::handleTaskChange(int taskIndex)
-{
+void AppController::handleTaskChange(int taskIndex) {
     m_currentTask = taskIndex;
     m_window->updateLayoutForTask(taskIndex);
 }
 
-// ── Main dispatch ─────────────────────────────────────────────────────────────
-void AppController::handleApply()
-{
-    // Guard: need at least image A
-    if (!m_state.hasImageA())
-    {
-        m_window->setStatusMessage("Load an image first!", false);
-        return;
-    }
-
-    // For matching tasks also need image B
-    bool needsB = (m_currentTask == 4 || m_currentTask == 5);
-    if (needsB && !m_state.hasImageB())
-    {
-        m_window->setStatusMessage("Load both Image A and Image B!", false);
-        return;
-    }
+void AppController::handleApply() {
+    if (!m_state.hasImageA()) { m_window->setStatusMessage("Load image A!", false); return; }
+    if ((m_currentTask >= 4) && !m_state.hasImageB()) { m_window->setStatusMessage("Load image B!", false); return; }
 
     m_window->getTopTaskBar()->setProcessing(true);
-
-    try
-    {
-        switch (m_currentTask)
-        {
-        case 1:
-            runHarris();
-            break;
-        case 2:
-            runLambda();
-            break;
-        case 3:
-            runSIFT();
-            break;
-        case 4:
-            runSSD();
-            break;
-        case 5:
-            runNCC();
-            break;
-        default:
-            break;
+    try {
+        switch (m_currentTask) {
+            case 1: runHarris(); break;
+            case 2: runLambda(); break;
+            case 3: runSIFT();   break;
+            case 4: runSSD();    break;
+            case 5: runNCC();    break;
         }
-    }
-    catch (const std::exception &ex)
-    {
-        m_window->setStatusMessage(
-            QString("Error: %1").arg(ex.what()), false);
-    }
-    catch (...)
-    {
-        m_window->setStatusMessage("Unknown error in backend", false);
-    }
-
+    } catch (...) { m_window->setStatusMessage("Backend Error", false); }
     m_window->getTopTaskBar()->setProcessing(false);
 }
 
@@ -204,6 +146,7 @@ void AppController::runSSD()
 {
     auto *pBox = m_window->getTopTaskBar()->getParameterBox();
 
+    // Get parameters from UI
     int topK = pBox->intValue("ssdTopK", 50);
     double ratio = pBox->dblValue("ssdRatio", 0.75);
     bool crossCheck = pBox->boolValue("ssdCrossCheck", false);
@@ -213,13 +156,21 @@ void AppController::runSSD()
     cv::Mat imgB = m_state.getImageB();
     double timingMs = 0.0;
 
+    // Call the Backend
     auto [result, matches] = SSDMatcher::match(
         imgA, imgB, topK, ratio, crossCheck, vizMode, timingMs);
 
+    if (result.empty()) {
+        m_window->setStatusMessage("SSD Matching failed (No descriptors found)", false);
+        return;
+    }
+
+    // Update State and UI
     m_state.setOutput(result);
     m_window->getPanelOut()->displayImage(result);
     m_window->getPanelOut()->setTimingMs(timingMs);
 
+    // Update Sidebar Report
     showMatchingReport("SSD", (int)matches.size(), timingMs);
     m_window->setStatusMessage(
         QString("SSD: %1 matches in %2 ms ✓").arg(matches.size()).arg(timingMs, 0, 'f', 1),
