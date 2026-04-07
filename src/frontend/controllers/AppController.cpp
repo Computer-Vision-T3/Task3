@@ -21,59 +21,82 @@
 #include "../../backend/Module5_NCCMatching/NCCMatcher.h"
 
 // ── Constructor ──────────────────────────────────────────────────────────────
-AppController::AppController(MainWindow* window, QObject* parent)
+AppController::AppController(MainWindow *window, QObject *parent)
     : QObject(parent), m_window(window)
 {
-    auto* bar = m_window->getTopTaskBar();
+    auto *bar = m_window->getTopTaskBar();
 
-    connect(bar, &TopTaskBar::taskChanged,   this, &AppController::handleTaskChange);
-    connect(bar, &TopTaskBar::applyRequested,this, &AppController::handleApply);
-    connect(bar, &TopTaskBar::clearRequested,this, &AppController::handleClear);
+    connect(bar, &TopTaskBar::taskChanged, this, &AppController::handleTaskChange);
+    connect(bar, &TopTaskBar::applyRequested, this, &AppController::handleApply);
+    connect(bar, &TopTaskBar::clearRequested, this, &AppController::handleClear);
     connect(bar, &TopTaskBar::saveRequested, this, &AppController::handleSave);
 
     // Keep state manager in sync with panel images
     connect(m_window->getPanelA(), &ImagePanel::imageLoaded,
-            this, [this](const cv::Mat& img){ m_state.setImageA(img); });
+            this, [this](const cv::Mat &img)
+            { m_state.setImageA(img); });
     connect(m_window->getPanelB(), &ImagePanel::imageLoaded,
-            this, [this](const cv::Mat& img){ m_state.setImageB(img); });
+            this, [this](const cv::Mat &img)
+            { m_state.setImageB(img); });
 }
 
 // ── Task change ───────────────────────────────────────────────────────────────
-void AppController::handleTaskChange(int taskIndex) {
+void AppController::handleTaskChange(int taskIndex)
+{
     m_currentTask = taskIndex;
     m_window->updateLayoutForTask(taskIndex);
 }
 
 // ── Main dispatch ─────────────────────────────────────────────────────────────
-void AppController::handleApply() {
+void AppController::handleApply()
+{
     // Guard: need at least image A
-    if (!m_state.hasImageA()) {
+    if (!m_state.hasImageA())
+    {
         m_window->setStatusMessage("Load an image first!", false);
         return;
     }
 
     // For matching tasks also need image B
     bool needsB = (m_currentTask == 4 || m_currentTask == 5);
-    if (needsB && !m_state.hasImageB()) {
+    if (needsB && !m_state.hasImageB())
+    {
         m_window->setStatusMessage("Load both Image A and Image B!", false);
         return;
     }
 
     m_window->getTopTaskBar()->setProcessing(true);
 
-    try {
-        switch (m_currentTask) {
-        case 1: runHarris(); break;
-        case 2: runLambda(); break;
-        case 3: runSIFT();   break;
-        case 4: runSSD();    break;
-        case 5: runNCC();    break;
-        default: break;
+    try
+    {
+        switch (m_currentTask)
+        {
+        case 1:
+            runHarris();
+            break;
+        case 2:
+            runLambda();
+            break;
+        case 3:
+            runSIFT();
+            break;
+        case 4:
+            runSSD();
+            break;
+        case 5:
+            runNCC();
+            break;
+        default:
+            break;
         }
-    } catch (const std::exception& ex) {
+    }
+    catch (const std::exception &ex)
+    {
         m_window->setStatusMessage(
             QString("Error: %1").arg(ex.what()), false);
-    } catch (...) {
+    }
+    catch (...)
+    {
         m_window->setStatusMessage("Unknown error in backend", false);
     }
 
@@ -81,17 +104,19 @@ void AppController::handleApply() {
 }
 
 // ── Module 1 — Harris ────────────────────────────────────────────────────────
-void AppController::runHarris() {
-    auto* pBox = m_window->getTopTaskBar()->getParameterBox();
+void AppController::runHarris()
+{
+    auto *pBox = m_window->getTopTaskBar()->getParameterBox();
 
-    double k      = pBox->dblValue("harrisK",      0.05);
-    int    block  = pBox->intValue("harrisBlock",   3);
-    int    apert  = pBox->intValue("harrisAper",    3);
-    int    thresh = pBox->intValue("harrisThresh",  100);
-    bool   color  = pBox->boolValue("harrisColor",  false);
+    double k = pBox->dblValue("harrisK", 0.05);
+    int block = pBox->intValue("harrisBlock", 3);
+    int apert = pBox->intValue("harrisAper", 3);
+    int thresh = pBox->intValue("harrisThresh", 100);
+    bool color = pBox->boolValue("harrisColor", false);
 
     // Aperture must be odd
-    if (apert % 2 == 0) apert++;
+    if (apert % 2 == 0)
+        apert++;
 
     cv::Mat src = m_state.getImageA();
     double timingMs = 0.0;
@@ -111,14 +136,15 @@ void AppController::runHarris() {
 }
 
 // ── Module 2 — Lambda / Shi-Tomasi ───────────────────────────────────────────
-void AppController::runLambda() {
-    auto* pBox = m_window->getTopTaskBar()->getParameterBox();
+void AppController::runLambda()
+{
+    auto *pBox = m_window->getTopTaskBar()->getParameterBox();
 
-    int    maxKp   = pBox->intValue("lambdaMaxKp",   500);
+    int maxKp = pBox->intValue("lambdaMaxKp", 500);
     double quality = pBox->dblValue("lambdaQuality", 0.01);
-    int    minDist = pBox->intValue("lambdaDist",    10);
-    int    block   = pBox->intValue("lambdaBlock",   3);
-    bool   color   = pBox->boolValue("lambdaColor",  false);
+    int minDist = pBox->intValue("lambdaDist", 10);
+    int block = pBox->intValue("lambdaBlock", 3);
+    bool color = pBox->boolValue("lambdaColor", false);
 
     cv::Mat src = m_state.getImageA();
     double timingMs = 0.0;
@@ -138,15 +164,16 @@ void AppController::runLambda() {
 }
 
 // ── Module 3 — SIFT ──────────────────────────────────────────────────────────
-void AppController::runSIFT() {
-    auto* pBox = m_window->getTopTaskBar()->getParameterBox();
+void AppController::runSIFT()
+{
+    auto *pBox = m_window->getTopTaskBar()->getParameterBox();
 
-    int    nFeat    = pBox->intValue("siftNFeat",    0);
-    int    nOctave  = pBox->intValue("siftNOctave",  3);
+    int nFeat = pBox->intValue("siftNFeat", 0);
+    int nOctave = pBox->intValue("siftNOctave", 3);
     double contrast = pBox->dblValue("siftContrast", 0.04);
-    double edge     = pBox->dblValue("siftEdge",     10.0);
-    double sigma    = pBox->dblValue("siftSigma",    1.6);
-    bool   color    = pBox->boolValue("siftColor",   false); // <--- Read the UI checkbox
+    double edge = pBox->dblValue("siftEdge", 10.0);
+    double sigma = pBox->dblValue("siftSigma", 1.6);
+    bool color = pBox->boolValue("siftColor", false); // <--- Read the UI checkbox
 
     cv::Mat src = m_state.getImageA();
     double timingMs = 0.0;
@@ -162,8 +189,9 @@ void AppController::runSIFT() {
     m_window->getPanelA()->setTimingMs(timingMs);
 
     QString extra = QString("Descriptor size: %1 × %2")
-        .arg(descriptors.rows).arg(descriptors.cols);
-        
+                        .arg(descriptors.rows)
+                        .arg(descriptors.cols);
+
     // Pass the 'color' boolean instead of 'false' so the HTML sidebar updates properly
     showDetectionReport("SIFT", (int)keypoints.size(), timingMs, color, extra);
     m_window->setStatusMessage(
@@ -172,13 +200,14 @@ void AppController::runSIFT() {
 }
 
 // ── Module 4 — SSD Matching ──────────────────────────────────────────────────
-void AppController::runSSD() {
-    auto* pBox = m_window->getTopTaskBar()->getParameterBox();
+void AppController::runSSD()
+{
+    auto *pBox = m_window->getTopTaskBar()->getParameterBox();
 
-    int    topK       = pBox->intValue("ssdTopK",      50);
-    double ratio      = pBox->dblValue("ssdRatio",     0.75);
-    bool   crossCheck = pBox->boolValue("ssdCrossCheck",false);
-    int    vizMode    = pBox->comboIndex("ssdViz",      0);
+    int topK = pBox->intValue("ssdTopK", 50);
+    double ratio = pBox->dblValue("ssdRatio", 0.75);
+    bool crossCheck = pBox->boolValue("ssdCrossCheck", false);
+    int vizMode = pBox->comboIndex("ssdViz", 0);
 
     cv::Mat imgA = m_state.getImageA();
     cv::Mat imgB = m_state.getImageB();
@@ -198,33 +227,60 @@ void AppController::runSSD() {
 }
 
 // ── Module 5 — NCC Matching ──────────────────────────────────────────────────
-void AppController::runNCC() {
-    auto* pBox = m_window->getTopTaskBar()->getParameterBox();
+void AppController::runNCC()
+{
+    auto *pBox = m_window->getTopTaskBar()->getParameterBox();
 
-    int    topK       = pBox->intValue("nccTopK",      50);
-    double thresh     = pBox->dblValue("nccThresh",    0.70);
-    bool   crossCheck = pBox->boolValue("nccCrossCheck",false);
-    int    vizMode    = pBox->comboIndex("nccViz",      0);
+    int topK = pBox->intValue("nccTopK", 50);
+    double thresh = pBox->dblValue("nccThresh", 0.80);
+    bool crossCheck = pBox->boolValue("nccCrossCheck", true);
 
     cv::Mat imgA = m_state.getImageA();
     cv::Mat imgB = m_state.getImageB();
-    double timingMs = 0.0;
 
-    auto [result, matches] = NCCMatcher::match(
-        imgA, imgB, topK, thresh, crossCheck, vizMode, timingMs);
+    // ── Step 1: run SIFT on both images to get keypoints + descriptors ────────
+    double siftTimeA = 0.0, siftTimeB = 0.0;
+    auto [visA, kpA, descA] = SIFTDescriptor::describe(imgA, 0, 3, 0.04, 10.0, 1.6, false, siftTimeA);
+    auto [visB, kpB, descB] = SIFTDescriptor::describe(imgB, 0, 3, 0.04, 10.0, 1.6, false, siftTimeB);
+
+    if (descA.empty() || descB.empty())
+    {
+        m_window->setStatusMessage("NCC: could not compute SIFT descriptors", false);
+        return;
+    }
+
+    // ── Step 2: NCC matching on descriptors ───────────────────────────────────
+    NCCMatcher matcher(static_cast<float>(thresh), crossCheck);
+    std::vector<NCCMatch> matches;
+    double timingMs = matcher.match(descA, descB, matches);
+
+    // ── Step 3: keep only the top-K matches for visualisation ─────────────────
+    if (topK > 0 && static_cast<int>(matches.size()) > topK)
+        matches.resize(topK); // already sorted best-first by NCCMatcher
+
+    // ── Step 4: draw result ───────────────────────────────────────────────────
+    cv::Mat result = NCCMatcher::drawMatches(imgA, kpA, imgB, kpB, matches);
 
     m_state.setOutput(result);
     m_window->getPanelOut()->displayImage(result);
     m_window->getPanelOut()->setTimingMs(timingMs);
 
-    showMatchingReport("NCC", (int)matches.size(), timingMs);
+    // Optional: show NCC score of the best match in the report
+    QString extra;
+    if (!matches.empty())
+        extra = QString("Best NCC score: %1").arg(matches.front().nccScore, 0, 'f', 4);
+
+    showMatchingReport("NCC", static_cast<int>(matches.size()), timingMs, extra);
     m_window->setStatusMessage(
-        QString("NCC: %1 matches in %2 ms ✓").arg(matches.size()).arg(timingMs, 0, 'f', 1),
+        QString("NCC: %1 matches in %2 ms ✓")
+            .arg(matches.size())
+            .arg(timingMs, 0, 'f', 1),
         true);
 }
 
 // ── Clear ─────────────────────────────────────────────────────────────────────
-void AppController::handleClear() {
+void AppController::handleClear()
+{
     m_window->getPanelOut()->clear();
     m_window->getPanelA()->clearKeyPoints();
     m_window->getPanelA()->clearTiming();
@@ -236,38 +292,44 @@ void AppController::handleClear() {
 }
 
 // ── Save ──────────────────────────────────────────────────────────────────────
-void AppController::handleSave() {
+void AppController::handleSave()
+{
     cv::Mat out = m_state.getOutput();
-    if (out.empty()) {
+    if (out.empty())
+    {
         m_window->setStatusMessage("Nothing to save", false);
         return;
     }
     QString path = QFileDialog::getSaveFileName(
         m_window, "Save Result", "",
         "PNG (*.png);;JPEG (*.jpg);;BMP (*.bmp)");
-    if (!path.isEmpty()) {
+    if (!path.isEmpty())
+    {
         cv::imwrite(path.toStdString(), out);
         m_window->setStatusMessage("Saved ✓", true);
     }
 }
 
 // ── HTML report builders ──────────────────────────────────────────────────────
-void AppController::showDetectionReport(const QString& methodName,
-                                         int kpCount, double timingMs,
-                                         bool isColor, const QString& extra) {
+void AppController::showDetectionReport(const QString &methodName,
+                                        int kpCount, double timingMs,
+                                        bool isColor, const QString &extra)
+{
     QString timingStr = timingMs < 1000.0
-        ? QString("%1 ms").arg(timingMs, 0, 'f', 2)
-        : QString("%1 s").arg(timingMs / 1000.0, 0, 'f', 3);
+                            ? QString("%1 ms").arg(timingMs, 0, 'f', 2)
+                            : QString("%1 s").arg(timingMs / 1000.0, 0, 'f', 3);
 
     QString colorStr = isColor ? "Color (3-ch)" : "Grayscale";
 
     QString extraHtml;
-    if (!extra.isEmpty()) {
+    if (!extra.isEmpty())
+    {
         extraHtml = QString(R"(
         <div class='card'>
             <h3>Descriptor Info</h3>
             <p>%1</p>
-        </div>)").arg(extra);
+        </div>)")
+                        .arg(extra);
     }
 
     QString html = QString(R"(
@@ -305,22 +367,24 @@ void AppController::showDetectionReport(const QString& methodName,
   <p>● <span style='color:#D85A30;font-weight:700;'>Coral</span> — large (&gt;25 px)</p>
   <p style='margin-top:8px;font-size:11px;color:#C4BDB4;'>Line indicates keypoint orientation.</p>
 </div>
-)").arg(methodName)
-   .arg(kpCount)
-   .arg(timingStr)
-   .arg(colorStr)
-   .arg(extraHtml);
+)")
+                       .arg(methodName)
+                       .arg(kpCount)
+                       .arg(timingStr)
+                       .arg(colorStr)
+                       .arg(extraHtml);
 
-    if (auto* sb = m_window->getInfoSidebar())
+    if (auto *sb = m_window->getInfoSidebar())
         sb->setHtml(html);
 }
 
-void AppController::showMatchingReport(const QString& methodName,
-                                        int matchCount, double timingMs,
-                                        const QString& extra) {
+void AppController::showMatchingReport(const QString &methodName,
+                                       int matchCount, double timingMs,
+                                       const QString &extra)
+{
     QString timingStr = timingMs < 1000.0
-        ? QString("%1 ms").arg(timingMs, 0, 'f', 2)
-        : QString("%1 s").arg(timingMs / 1000.0, 0, 'f', 3);
+                            ? QString("%1 ms").arg(timingMs, 0, 'f', 2)
+                            : QString("%1 s").arg(timingMs / 1000.0, 0, 'f', 3);
 
     QString extraHtml;
     if (!extra.isEmpty())
@@ -355,14 +419,15 @@ void AppController::showMatchingReport(const QString& methodName,
   <h3>About %1</h3>
   <p>%5</p>
 </div>
-)").arg(methodName)
-   .arg(matchCount)
-   .arg(timingStr)
-   .arg(extraHtml)
-   .arg(methodName == "SSD"
-       ? "Sum of Squared Differences measures descriptor similarity by summing pixel-wise squared differences. Lower scores = better matches."
-       : "Normalized Cross-Correlation measures the cosine similarity between descriptor vectors. Scores near 1.0 indicate strong matches.");
+)")
+                       .arg(methodName)
+                       .arg(matchCount)
+                       .arg(timingStr)
+                       .arg(extraHtml)
+                       .arg(methodName == "SSD"
+                                ? "Sum of Squared Differences measures descriptor similarity by summing pixel-wise squared differences. Lower scores = better matches."
+                                : "Normalized Cross-Correlation measures the cosine similarity between descriptor vectors. Scores near 1.0 indicate strong matches.");
 
-    if (auto* sb = m_window->getInfoSidebar())
+    if (auto *sb = m_window->getInfoSidebar())
         sb->setHtml(html);
 }
