@@ -36,11 +36,14 @@ file(GLOB_RECURSE BACKEND_SOURCES
 )
 
 # ─── Executable & Linking ───────────────────────────────────────────
+# ─── Executable & Linking ───────────────────────────────────────────
 add_executable(launch src/main.cpp ${FRONTEND_SOURCES} ${BACKEND_SOURCES})
 
 target_link_libraries(launch PRIVATE
     Qt5::Widgets
     ${OpenCV_LIBS}
     ${CURL_LIBRARIES}
+    tiff         # <--- Add this to fix the GDAL/TIFF undefined references
+    pthread      # <--- Recommended for multi-threading support in OpenCV
     -lcurl
 )
