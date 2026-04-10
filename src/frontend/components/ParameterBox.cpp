@@ -13,7 +13,7 @@ ParameterBox::ParameterBox(QWidget* parent) : QWidget(parent) {
 void ParameterBox::clearLayout() {
     QLayoutItem* child;
     while ((child = m_layout->takeAt(0)) != nullptr) {
-        if (child->widget()) child->widget()->deleteLater();
+        if (child->widget()) delete child->widget();
         delete child;
     }
 }
@@ -40,7 +40,7 @@ void ParameterBox::updateForTask(int taskIndex) {
         break;
 
     case 3: // ── SIFT Descriptor ─────────────────────────────────────────────
-        addSpinBox      ("siftNFeat",   "Num Features", 0,    5000, 0,          0, 0);
+        addSpinBox      ("siftNFeat",   "Features To Drop (0=All)", 0, 5000, 0,  0, 0);
         addSpinBox      ("siftNOctave", "Octave Layers",1,    8,    3,          0, 1);
         addDoubleSpinBox("siftContrast","Contrast Thr.", 0.01, 0.5, 0.04,0.005, 0, 2);
         addDoubleSpinBox("siftEdge",    "Edge Thresh",  1.0,  50.0, 10.0, 1.0, 0, 3);
