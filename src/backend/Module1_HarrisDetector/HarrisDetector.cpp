@@ -54,6 +54,8 @@ HarrisDetector::detect(const cv::Mat& src, double k, int /*blockSize*/,
         }
     }
 
+    if (minVal < 0.0f) minVal = 0.0f;
+    
     cv::Mat responseNorm = cv::Mat::zeros(responseRaw.size(), CV_32FC1);
     float range = maxVal - minVal;
     if (range > 0) {
@@ -78,7 +80,7 @@ HarrisDetector::detect(const cv::Mat& src, double k, int /*blockSize*/,
     return { canvas, keypoints };
 }
 
-// ── 100% From-Scratch Harris Response ─────────────────────────────────────────
+// ── Harris Response ─────────────────────────────────────────
 void HarrisDetector::computeResponse(const cv::Mat& gray, cv::Mat& dst, double k, int apertureSize)
 {
     cv::Mat grayFloat;
